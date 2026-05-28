@@ -1,0 +1,1 @@
+ALTER TABLE "purchase_order" ADD COLUMN "cabang" text DEFAULT 'Jakarta' NOT NULL;
