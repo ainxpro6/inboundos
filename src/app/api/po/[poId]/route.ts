@@ -25,6 +25,7 @@ export async function GET(
         with: {
           sku: true,
         },
+        orderBy: (item, { asc }) => [asc(item.createdAt)],
       },
     },
   });

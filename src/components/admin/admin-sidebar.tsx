@@ -10,12 +10,14 @@ import {
   FileText,
   ArrowLeft,
   Plus,
+  Building2,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/po", label: "Purchase Orders", icon: ClipboardList },
   { href: "/admin/sku", label: "Master SKU", icon: Package },
+  { href: "/admin/vendor", label: "Vendor", icon: Building2 },
   { href: "/admin/inbound-logs", label: "Inbound Logs", icon: FileText },
   { href: "/admin/users", label: "Kelola User", icon: Users },
 ];

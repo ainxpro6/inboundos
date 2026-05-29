@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
           with: {
             sku: true,
           },
+          orderBy: (item, { asc }) => [asc(item.createdAt)],
         },
       },
       orderBy: (po, { desc }) => [desc(po.createdAt)],
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest) {
           with: {
             sku: true,
           },
+          orderBy: (item, { asc }) => [asc(item.createdAt)],
         },
       },
       orderBy: (po, { desc }) => [desc(po.createdAt)],

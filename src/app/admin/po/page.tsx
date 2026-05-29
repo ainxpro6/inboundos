@@ -329,6 +329,19 @@ function CreatePODialog({
   const [searchingSkus, setSearchingSkus] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [vendorList, setVendorList] = useState<{ id: string; name: string }[]>([]);
+  const [loadingVendors, setLoadingVendors] = useState(false);
+
+  // Fetch vendors on mount
+  useEffect(() => {
+    if (!open) return;
+    setLoadingVendors(true);
+    fetch("/api/admin/vendor?limit=200")
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((d) => setVendorList(d.data || []))
+      .catch(() => {})
+      .finally(() => setLoadingVendors(false));
+  }, [open]);
 
   interface SkuOption {
     id: string;
@@ -367,7 +380,7 @@ function CreatePODialog({
       toast.error("SKU sudah ditambahkan");
       return;
     }
-    setItems([...items, { sku_id: sku.id, sku_code: sku.sku_code, sku_name: sku.name, qty_order: 1 }]);
+    setItems([{ sku_id: sku.id, sku_code: sku.sku_code, sku_name: sku.name, qty_order: 1 }, ...items]);
     setSkuSearch("");
     setSkuResults([]);
   };
@@ -441,13 +454,21 @@ function CreatePODialog({
             </div>
             <div className="space-y-2">
               <Label>Nama Supplier</Label>
-              <Input
+              <select
                 value={supplierName}
                 onChange={(e) => setSupplierName(e.target.value)}
-                placeholder="PT. Nama Supplier"
-                className="h-11 rounded-xl"
+                className="w-full h-11 px-3 rounded-xl border border-border bg-background text-sm focus:border-scanner-focus focus:ring-1 focus:ring-scanner-focus outline-none"
                 required
-              />
+              >
+                <option value="">— Pilih Vendor —</option>
+                {loadingVendors ? (
+                  <option disabled>Memuat...</option>
+                ) : (
+                  vendorList.map((v) => (
+                    <option key={v.id} value={v.name}>{v.name}</option>
+                  ))
+                )}
+              </select>
             </div>
           </div>
 

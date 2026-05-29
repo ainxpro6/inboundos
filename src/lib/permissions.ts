@@ -32,6 +32,10 @@ export function canManageSKU(role: string | null | undefined): boolean {
   return role === "admin" || role === "supervisor";
 }
 
+export function canManageVendor(role: string | null | undefined): boolean {
+  return role === "admin" || role === "supervisor";
+}
+
 export function canAccessAdmin(role: string | null | undefined): boolean {
   return role === "admin" || role === "supervisor";
 }

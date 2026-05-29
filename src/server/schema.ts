@@ -85,6 +85,15 @@ export const masterSku = pgTable("master_sku", {
   barcode: text("barcode").notNull().unique(),
 });
 
+export const vendor = pgTable("vendor", {
+  id: text("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull().unique(),
+  address: text("address"),
+  phone: text("phone"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const purchaseOrder = pgTable("purchase_order", {
   id: text("id").primaryKey(),
   poNumber: text("po_number").notNull().unique(),
@@ -104,6 +113,7 @@ export const purchaseOrderItem = pgTable("purchase_order_item", {
     .references(() => masterSku.id),
   qtyOrder: integer("qty_order").notNull(),
   qtyReceived: integer("qty_received").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const inboundLog = pgTable("inbound_log", {
@@ -125,6 +135,8 @@ export const inboundLog = pgTable("inbound_log", {
 export const purchaseOrderRelations = relations(purchaseOrder, ({ many }) => ({
   items: many(purchaseOrderItem),
 }));
+
+export const vendorRelations = relations(vendor, () => ({}));
 
 export const purchaseOrderItemRelations = relations(
   purchaseOrderItem,
