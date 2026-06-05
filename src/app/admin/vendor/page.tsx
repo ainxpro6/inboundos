@@ -20,6 +20,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import { TablePagination } from "@/components/common/table-pagination";
 
 interface Vendor {
   id: string;
@@ -30,30 +31,44 @@ interface Vendor {
   created_at: string;
 }
 
+interface VendorResponse {
+  data: Vendor[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
 export default function AdminVendorPage() {
-  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [response, setResponse] = useState<VendorResponse>({
+    data: [],
+    total: 0,
+    page: 1,
+    totalPages: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(50);
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Vendor | null>(null);
   const [editTarget, setEditTarget] = useState<Vendor | null>(null);
 
   const loadVendors = useCallback(async () => {
     try {
-      const url = search.trim()
-        ? `/api/admin/vendor?search=${encodeURIComponent(search)}`
-        : "/api/admin/vendor";
-      const res = await fetch(url);
+      const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+      if (search.trim()) params.set("search", search);
+
+      const res = await fetch(`/api/admin/vendor?${params}`);
       if (res.ok) {
         const data = await res.json();
-        setVendors(data.data || []);
+        setResponse(data);
       }
     } catch {
       toast.error("Gagal memuat data vendor");
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [search, page, limit]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -62,6 +77,11 @@ export default function AdminVendorPage() {
     }, 300);
     return () => clearTimeout(timeout);
   }, [loadVendors]);
+
+  // Reset page when search or limit changes
+  useEffect(() => {
+    setPage(1);
+  }, [search, limit]);
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8 bg-background">
@@ -107,7 +127,7 @@ export default function AdminVendorPage() {
             <div className="flex justify-center py-16">
               <div className="w-6 h-6 border-2 border-scanner-focus border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : vendors.length === 0 ? (
+          ) : response.data.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
               <Building2 className="h-12 w-12 text-outline-variant mb-4" />
               <p className="text-sm text-on-surface-variant">
@@ -127,7 +147,7 @@ export default function AdminVendorPage() {
                 </tr>
               </thead>
               <tbody>
-                {vendors.map((v) => (
+                {response.data.map((v) => (
                   <tr
                     key={v.id}
                     className="border-b border-outline-variant hover:bg-surface-container-low transition-colors"
@@ -162,12 +182,15 @@ export default function AdminVendorPage() {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="border-t border-outline-variant p-4 flex justify-between items-center bg-surface-container-lowest">
-          <span className="text-sm text-on-surface-variant">
-            {vendors.length} vendor
-          </span>
-        </div>
+        {/* Pagination Footer */}
+        <TablePagination
+          page={page}
+          totalPages={response.totalPages}
+          limit={limit}
+          total={response.total}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+        />
       </div>
 
       {/* Create Vendor Dialog */}

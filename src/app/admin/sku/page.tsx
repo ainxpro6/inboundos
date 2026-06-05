@@ -18,14 +18,12 @@ import {
   Search,
   AlertTriangle,
   Package,
-  ChevronLeft,
-  ChevronRight,
-  MoreVertical,
   Download,
   Tag,
   Box,
 } from "lucide-react";
 import { toast } from "sonner";
+import { TablePagination } from "@/components/common/table-pagination";
 
 interface SkuData {
   id: string;
@@ -51,6 +49,7 @@ export default function AdminSKUPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(50);
   const [showCreate, setShowCreate] = useState(false);
   const [editTarget, setEditTarget] = useState<SkuData | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<SkuData | null>(null);
@@ -58,7 +57,7 @@ export default function AdminSKUPage() {
 
   const loadSKUs = useCallback(async () => {
     try {
-      const params = new URLSearchParams({ page: page.toString(), limit: "30" });
+      const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
       if (search.trim()) params.set("search", search);
 
       const res = await fetch(`/api/admin/sku?${params}`);
@@ -68,7 +67,7 @@ export default function AdminSKUPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, page]);
+  }, [search, page, limit]);
 
   const handleExport = useCallback(async () => {
     setExporting(true);
@@ -118,10 +117,10 @@ export default function AdminSKUPage() {
     return () => clearTimeout(timeout);
   }, [loadSKUs]);
 
-  // Reset page when search changes
+  // Reset page when search or limit changes
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [search, limit]);
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8 bg-background max-w-[1440px] mx-auto w-full">
@@ -268,31 +267,16 @@ export default function AdminSKUPage() {
       </div>
 
       {/* Pagination */}
-      {response.totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4 text-on-surface-variant text-sm font-semibold">
-          <span>
-            Showing {(page - 1) * 30 + 1} to {Math.min(page * 30, response.total)} of {response.total.toLocaleString()} entries
-          </span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page <= 1}
-              className="min-h-[48px] px-4 border border-outline-variant rounded-xl bg-surface-container-lowest hover:bg-surface-container-low transition-colors disabled:opacity-50 flex items-center gap-1"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </button>
-            <button
-              onClick={() => setPage(Math.min(response.totalPages, page + 1))}
-              disabled={page >= response.totalPages}
-              className="min-h-[48px] px-4 border border-outline-variant rounded-xl bg-surface-container-lowest hover:bg-surface-container-low transition-colors disabled:opacity-50 flex items-center gap-1"
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden mt-4">
+        <TablePagination
+          page={page}
+          totalPages={response.totalPages}
+          limit={limit}
+          total={response.total}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+        />
+      </div>
 
       {/* Create/Edit Dialog */}
       <SKUFormDialog

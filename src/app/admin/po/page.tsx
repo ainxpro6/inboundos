@@ -308,7 +308,7 @@ interface NewPOItem {
   sku_id: string;
   sku_code: string;
   sku_name: string;
-  qty_order: number;
+  qty_order: string;
 }
 
 function CreatePODialog({
@@ -380,7 +380,7 @@ function CreatePODialog({
       toast.error("SKU sudah ditambahkan");
       return;
     }
-    setItems([{ sku_id: sku.id, sku_code: sku.sku_code, sku_name: sku.name, qty_order: 1 }, ...items]);
+    setItems([{ sku_id: sku.id, sku_code: sku.sku_code, sku_name: sku.name, qty_order: "1" }, ...items]);
     setSkuSearch("");
     setSkuResults([]);
   };
@@ -389,7 +389,7 @@ function CreatePODialog({
     setItems(items.filter((i) => i.sku_id !== skuId));
   };
 
-  const updateQty = (skuId: string, qty: number) => {
+  const updateQty = (skuId: string, qty: string) => {
     setItems(items.map((i) => (i.sku_id === skuId ? { ...i, qty_order: qty } : i)));
   };
 
@@ -397,6 +397,15 @@ function CreatePODialog({
     e.preventDefault();
     if (items.length === 0) {
       setError("Tambahkan minimal 1 item");
+      return;
+    }
+    // Validate all quantities
+    const hasInvalidQty = items.some((i) => {
+      const qty = parseInt(i.qty_order);
+      return isNaN(qty) || qty <= 0;
+    });
+    if (hasInvalidQty) {
+      setError("Quantity item tidak boleh 0 atau kosong");
       return;
     }
     setLoading(true);
@@ -410,7 +419,7 @@ function CreatePODialog({
           po_number: poNumber,
           supplier_name: supplierName,
           cabang,
-          items: items.map((i) => ({ sku_id: i.sku_id, qty_order: i.qty_order })),
+          items: items.map((i) => ({ sku_id: i.sku_id, qty_order: parseInt(i.qty_order) || 1 })),
         }),
       });
 
@@ -540,10 +549,15 @@ function CreatePODialog({
                       <p className="text-[10px] text-on-surface-variant truncate">{item.sku_name}</p>
                     </div>
                     <Input
-                      type="number"
-                      min={1}
+                      type="text"
+                      inputMode="numeric"
                       value={item.qty_order}
-                      onChange={(e) => updateQty(item.sku_id, parseInt(e.target.value) || 1)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "" || /^\d+$/.test(val)) {
+                          updateQty(item.sku_id, val);
+                        }
+                      }}
                       className="w-20 h-9 rounded-lg text-center text-sm"
                     />
                     <button

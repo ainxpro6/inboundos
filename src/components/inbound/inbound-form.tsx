@@ -235,8 +235,8 @@ export function InboundForm({
 }: InboundFormProps) {
   const [expiryDate, setExpiryDate] = useState<Date | undefined>(undefined);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [qtyGood, setQtyGood] = useState(1);
-  const [qtyReject, setQtyReject] = useState(0);
+  const [qtyGood, setQtyGood] = useState("1");
+  const [qtyReject, setQtyReject] = useState("0");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<{
@@ -247,8 +247,8 @@ export function InboundForm({
   const resetForm = useCallback(() => {
     setExpiryDate(undefined);
     setShowCalendar(false);
-    setQtyGood(1);
-    setQtyReject(0);
+    setQtyGood("1");
+    setQtyReject("0");
 
     setIsSubmitting(false);
     setSubmitResult(null);
@@ -267,8 +267,8 @@ export function InboundForm({
       const data: InboundFormData = {
         po_item_id: poItem.id,
         expiry_date: expiryDate.toISOString().split("T")[0],
-        qty_good: qtyGood,
-        qty_reject: qtyReject,
+        qty_good: parseInt(qtyGood) || 0,
+        qty_reject: parseInt(qtyReject) || 0,
       };
 
       const result = await onSubmit(data);
@@ -292,7 +292,7 @@ export function InboundForm({
   const expiryWarning =
     expiryDate && isExpiryWarning(expiryDate.toISOString().split("T")[0]);
 
-  const isFormValid = expiryDate && (qtyGood > 0 || qtyReject > 0);
+  const isFormValid = expiryDate && ((parseInt(qtyGood) || 0) > 0 || (parseInt(qtyReject) || 0) > 0);
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && handleClose()}>
@@ -409,18 +409,25 @@ export function InboundForm({
                   variant="outline"
                   size="icon"
                   className="h-10 w-10 rounded-lg touch-target shrink-0"
-                  onClick={() => setQtyGood(Math.max(0, qtyGood - 1))}
-                  disabled={qtyGood <= 0}
+                  onClick={() => {
+                    const current = parseInt(qtyGood) || 0;
+                    setQtyGood(String(Math.max(0, current - 1)));
+                  }}
+                  disabled={(parseInt(qtyGood) || 0) <= 0}
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   value={qtyGood}
-                  onChange={(e) =>
-                    setQtyGood(Math.max(0, parseInt(e.target.value) || 0))
-                  }
-                  className="h-10 text-center rounded-lg bg-card border-border/50 text-lg font-semibold tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "" || /^\d+$/.test(val)) {
+                      setQtyGood(val);
+                    }
+                  }}
+                  className="h-10 text-center rounded-lg bg-card border-border/50 text-lg font-semibold tabular-nums"
                   min={0}
                 />
                 <Button
@@ -428,7 +435,10 @@ export function InboundForm({
                   variant="outline"
                   size="icon"
                   className="h-10 w-10 rounded-lg touch-target shrink-0"
-                  onClick={() => setQtyGood(qtyGood + 1)}
+                  onClick={() => {
+                    const current = parseInt(qtyGood) || 0;
+                    setQtyGood(String(current + 1));
+                  }}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -446,18 +456,25 @@ export function InboundForm({
                   variant="outline"
                   size="icon"
                   className="h-10 w-10 rounded-lg touch-target shrink-0"
-                  onClick={() => setQtyReject(Math.max(0, qtyReject - 1))}
-                  disabled={qtyReject <= 0}
+                  onClick={() => {
+                    const current = parseInt(qtyReject) || 0;
+                    setQtyReject(String(Math.max(0, current - 1)));
+                  }}
+                  disabled={(parseInt(qtyReject) || 0) <= 0}
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   value={qtyReject}
-                  onChange={(e) =>
-                    setQtyReject(Math.max(0, parseInt(e.target.value) || 0))
-                  }
-                  className="h-10 text-center rounded-lg bg-card border-border/50 text-lg font-semibold tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "" || /^\d+$/.test(val)) {
+                      setQtyReject(val);
+                    }
+                  }}
+                  className="h-10 text-center rounded-lg bg-card border-border/50 text-lg font-semibold tabular-nums"
                   min={0}
                 />
                 <Button
@@ -465,7 +482,10 @@ export function InboundForm({
                   variant="outline"
                   size="icon"
                   className="h-10 w-10 rounded-lg touch-target shrink-0"
-                  onClick={() => setQtyReject(qtyReject + 1)}
+                  onClick={() => {
+                    const current = parseInt(qtyReject) || 0;
+                    setQtyReject(String(current + 1));
+                  }}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
